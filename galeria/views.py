@@ -1,9 +1,13 @@
-from django.shortcuts import render, get_object_or_404
-
+from django.shortcuts import render, get_object_or_404, redirect 
 from galeria.models import Fotografia
+from django.contrib import messages
 
 
 def index(request):
+    if not request.user.is_authenticated:
+        messages.error(request, 'Para acesso é preciso logar')
+        return redirect('login')
+        
     fotografias = Fotografia.objects.order_by("-data_fotografia").filter(publicada=True) # o sinal de '-' ordena do mais antigo para o mais novo, publicado no banco
     return render(request, 'galeria/index.html', {"cards":fotografias})    
 
@@ -15,6 +19,11 @@ def buscar(request):
     fotografias = Fotografia.objects.order_by("-data_fotografia").filter(publicada=True) # o sinal de '-' ordena do mais antigo para o mais novo, publicado no banco
     
     if "buscar" in request.GET:
+        
+        if not request.user.is_authenticated:
+            messages.error(request, 'Para buscar é preciso logar')
+            return redirect('login')
+        
         nome_a_buscar = request.GET['buscar']
         if nome_a_buscar:
             fotografias = fotografias.filter(nome__icontains=nome_a_buscar) 
